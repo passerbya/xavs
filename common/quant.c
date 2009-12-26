@@ -3,7 +3,7 @@
  *****************************************************************************
  * Copyright (C) 2009 xavs project
  *
- * Authors: 
+ * Authors:
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,19 +17,19 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
 
 #include "common.h"
+#include <stdio.h>
+#include <string.h>
 
-#ifdef HAVE_MMX
-#include "x86/quant.h"
-#endif
-#ifdef ARCH_PPC
-#   include "ppc/quant.h"
+#ifdef HAVE_MMXEXT
+#include "i386/quant.h"
 #endif
 
-static const int dequant_shifttable[64] = {
+/*Spec. 9.6.2 Table 23*/
+static const uint16_t dequant_shifttable[64] = {
 		14,14,14,14,14,14,14,14,
 		13,13,13,13,13,13,13,13,
 		13,12,12,12,12,12,12,12,
@@ -40,36 +40,51 @@ static const int dequant_shifttable[64] = {
 		 7, 7, 7, 7, 7, 7, 7, 7
 };
 
+static const int quant8_table[64] =
+{
+   	    32768,29775,27554,25268,23170,21247,19369,17770,
+		16302,15024,13777,12634,11626,10624,9742,8958,
+		8192,7512,6889,6305,5793,5303,4878,4467,
+		4091,3756,3444,3161,2894,2654,2435,2235,
+		2048,1878,1722,1579,1449,1329,1218,1117,
+		1024,939,861,790,724,664,609,558,
+		512,470,430,395,362,332,304,279,
+		256,235,215,197,181,166,152,140
+};
+
+
 /*
 *************************************************************************
 * Function: quantization 8x8 block 
 * Input:    dct[8][8] 
-*           mf  quantization matrix for 8x8 block 
-*           f   quantization deadzone for 8x8 block          
+*           mf  quantization matrix for 8x8 block
+*           f   quantization deadzone for 8x8 block  
+*           qp  quantization parameter for 8x8 block
 * Output:   dct[8][8] quantizated data
 * Return:   
 * Attention: The data address of the input 8x8 block should be continuous
 *  
 *************************************************************************
 */
-
-#define QUANT_ONE( coef, mf, f ) \
+#define QUANT_ONE( coef, mf, qtable, f )\
 { \
-    if( (coef) > 0 ) \
-        (coef) = (f + (coef)) * (mf) >> 15; \
+	if( (coef) > 0 ) \
+        (coef) = (f + ( ((coef) * (mf) + (1<<18)) >>19 ) * (qtable)) >> 15; \
     else \
-        (coef) = - ((f - (coef)) * (mf) >> 15); \
-    nz |= (coef); \
+        (coef) = - ((f + ( ( ((-coef) * (mf)  + (1<<18))>>19 ) * (qtable))) >> 15); \
+    nz |= (coef);\
 }
 
-static int quant_8x8( int16_t dct[8][8], uint16_t mf[64], uint16_t bias[64] )
+int quant_8x8( int16_t dct[8][8], int mf[64], uint16_t bias[64], int qp)
 {
     int i, nz = 0;
+	int qptable;
+    qptable = quant8_table[qp];
+
     for( i = 0; i < 64; i++ )
-        QUANT_ONE( dct[0][i], mf[i], bias[i] );
+        QUANT_ONE( dct[0][i], mf[i], qptable, bias[i] );
     return !!nz;
 }
-
 
 /*
 *************************************************************************
@@ -86,7 +101,7 @@ static int quant_8x8( int16_t dct[8][8], uint16_t mf[64], uint16_t bias[64] )
     dct[y][x] = ( dct[y][x] * dequant_mf[i_qp][y][x] + f ) >> (shift_bits);\
     dct[y][x] = ( dct[y][x] < (-32768))?(-32768):(dct[y][x]>32767)?32767:(dct[y][x]);
 
-static void dequant_8x8( int16_t dct[8][8], int dequant_mf[64][8][8], int i_qp )
+void dequant_8x8( int16_t dct[8][8], int dequant_mf[64][8][8], int i_qp )
 {
 	int y;
     const int shift_bits = dequant_shifttable[i_qp]; 
@@ -104,104 +119,11 @@ static void dequant_8x8( int16_t dct[8][8], int dequant_mf[64][8][8], int i_qp )
 		}
 }
 
-
-static int ALWAYS_INLINE xavs_coeff_last_internal( int16_t *l, int i_count )
-{
-    int i_last;
-    for( i_last = i_count-1; i_last >= 3; i_last -= 4 )
-        if( *(uint64_t*)(l+i_last-3) )
-            break;
-    while( i_last >= 0 && l[i_last] == 0 )
-        i_last--;
-    return i_last;
-}
-
-static int xavs_coeff_last4( int16_t *l )
-{
-    return xavs_coeff_last_internal( l, 4 );
-}
-static int xavs_coeff_last15( int16_t *l )
-{
-    return xavs_coeff_last_internal( l, 15 );
-}
-static int xavs_coeff_last16( int16_t *l )
-{
-    return xavs_coeff_last_internal( l, 16 );
-}
-static int xavs_coeff_last64( int16_t *l )
-{
-    return xavs_coeff_last_internal( l, 64 );
-}
-#if 0
-#define level_run(num)\
-static int xavs_coeff_level_run##num( int16_t *dct, xavs_run_level_t *runlevel )\
-{\
-    int i_last = runlevel->last = xavs_coeff_last##num(dct);\
-    int i_total = 0;\
-	int i=0;\
-    do\
-    {\
-        int r = 0;\
-        while( i <=i_last && dct[i] == 0 )\
-            r++;\
-        runlevel->level[i_total] = dct[i];\
-        runlevel->run[i_total++] = r;\
-    } while( i<=i_last);\
-    return i_total;\
-}
-
-
-level_run(4)
-level_run(15)
-level_run(16)
-level_run(64)
-#else
-static int xavs_coeff_level_run64( int16_t *dct, xavs_run_level_t *runlevel )
-{
-	int i_last = runlevel->last = xavs_coeff_last64(dct);
-	int i_total = 0;
-	int icoef, ipos, run, curr_val;
-
-	run  = -1;
-	ipos = 0;
-	for (icoef=0; icoef<64; icoef++)
-	{
-		run++;
-		curr_val = dct[icoef];
-		if (curr_val != 0)
-		{
-			runlevel->level[ipos] = curr_val;
-			runlevel->run[ipos]   = run;
-			run = -1;
-			ipos++;
-		}
-
-	}
-	i_total = ipos;
-
-	/*
-	do
-	{
-	int r = 0;
-	while( i <=i_last && dct[i] == 0 )
-	{
-	r++;
-	i++;
-	}
-	runlevel->level[i_total] = dct[i];
-	runlevel->run[i_total++] = r;
-	} while( ++i<=i_last);
-	*/
-	return i_total;
-}
-#endif
 void xavs_quant_init( xavs_t *h, int cpu, xavs_quant_function_t *pf )
 {
     pf->quant_8x8 = quant_8x8;
     pf->dequant_8x8 = dequant_8x8;
-    pf->coeff_level_run[ DCT_LUMA_8x8] = xavs_coeff_level_run64;
-    pf->coeff_last[ DCT_LUMA_8x8] = xavs_coeff_last64;    
-
+ 
 #ifdef HAVE_MMX
     if( cpu&XAVS_CPU_MMX )
     {

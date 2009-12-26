@@ -206,7 +206,7 @@ static void	  mk_destroyContexts(mk_Writer *w) {
 }
 
 static int	  mk_writeStr(mk_Context *c, unsigned id, const char *str) {
-  size_t  len = strlen(str);
+  unsigned int  len = (unsigned int)strlen(str);
 
   CHECK(mk_writeID(c, id));
   CHECK(mk_writeSize(c, len));
@@ -222,7 +222,8 @@ static int	  mk_writeBin(mk_Context *c, unsigned id, const void *data, unsigned 
 }
 
 static int	  mk_writeUInt(mk_Context *c, unsigned id, int64_t ui) {
-  unsigned char	  c_ui[8] = { ui >> 56, ui >> 48, ui >> 40, ui >> 32, ui >> 24, ui >> 16, ui >> 8, ui };
+  unsigned char	  c_ui[8] = { (unsigned char)(ui >> 56), (unsigned char)(ui >> 48), (unsigned char)(ui >> 40), (unsigned char)(ui >> 32), 
+	                          (unsigned char)(ui >> 24), (unsigned char)(ui >> 16), (unsigned char)(ui >> 8),  (unsigned char) (ui) };
   unsigned	  i = 0;
 
   CHECK(mk_writeID(c, id));
@@ -234,7 +235,8 @@ static int	  mk_writeUInt(mk_Context *c, unsigned id, int64_t ui) {
 }
 
 static int  	  mk_writeSInt(mk_Context *c, unsigned id, int64_t si) {
-  unsigned char	  c_si[8] = { si >> 56, si >> 48, si >> 40, si >> 32, si >> 24, si >> 16, si >> 8, si };
+  unsigned char	  c_si[8] = { (unsigned char)(si >> 56), (unsigned char)(si >> 48), (unsigned char)(si >> 40), (unsigned char)(si >> 32), 
+	                          (unsigned char)(si >> 24), (unsigned char)(si >> 16), (unsigned char)(si >> 8), (unsigned char)(si) };
   unsigned	  i = 0;
 
   CHECK(mk_writeID(c, id));
@@ -285,7 +287,8 @@ static unsigned	  mk_ebmlSizeSize(unsigned s) {
 }
 
 static unsigned	  mk_ebmlSIntSize(int64_t si) {
-  unsigned char	  c_si[8] = { si >> 56, si >> 48, si >> 40, si >> 32, si >> 24, si >> 16, si >> 8, si };
+  unsigned char	  c_si[8] = { (unsigned char)(si >> 56), (unsigned char)(si >> 48), (unsigned char)(si >> 40), (unsigned char)(si >> 32), 
+	                          (unsigned char)(si >> 24), (unsigned char)(si >> 16), (unsigned char)(si >> 8), (unsigned char)(si) };
   unsigned	  i = 0;
 
   if (si < 0)
@@ -442,8 +445,8 @@ static int mk_flushFrame(mk_Writer *w) {
   CHECK(mk_writeSize(w->cluster, fsize + 4));
   CHECK(mk_writeSize(w->cluster, 1)); // track number
 
-  c_delta_flags[0] = delta >> 8;
-  c_delta_flags[1] = delta;
+  c_delta_flags[0] = (unsigned char)(delta >> 8);
+  c_delta_flags[1] = (unsigned char)(delta);
   c_delta_flags[2] = 0;
   CHECK(mk_appendContextData(w->cluster, c_delta_flags, 3));
   if (w->frame) {

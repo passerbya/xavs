@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="8.00"
 	Name="xavs"
-	ProjectGUID="{9C9551A7-7BAE-4278-91C9-BE89E74E15FC}"
+	ProjectGUID="{DE913862-4BEE-4A29-99A2-8F8FE97A6A98}"
 	RootNamespace="xavs"
 	Keyword="Win32Proj"
 	>
@@ -20,7 +20,6 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="1"
 			>
 			<Tool
@@ -41,10 +40,10 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../common;../../extras;../.."
-				PreprocessorDefinitions="_DEBUG;_LIB;WIN32;__XAVS__;ARCH_X86;HAVE_STDINT_H"
+				AdditionalIncludeDirectories="../../common,../../encoder,../../extras,../.."
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;HAVE_STDINT_H;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;"
 				MinimalRebuild="true"
-				BasicRuntimeChecks="0"
+				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -62,10 +61,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="vfw32.lib winmm.lib libxavs.lib"
+				AdditionalDependencies="bin\libxavs.lib"
 				OutputFile="bin/xavs.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="bin"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -75,6 +73,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				UseFAT32Workaround="true"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -100,7 +99,6 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>

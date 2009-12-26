@@ -17,31 +17,17 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
 
-#ifndef XAVS_QUANT_H
-#define XAVS_QUANT_H
+#ifndef _XAVS_QUANT_H_
+#define _XAVS_QUANT_H_
 
 typedef struct
 {
-    int (*quant_8x8)( int16_t dct[8][8], uint16_t mf[64], uint16_t bias[64] );
+    int (*quant_8x8)(int16_t dct[8][8], int mf[64], uint16_t bias[64], int qp);
 
-    void (*dequant_8x8)( int16_t dct[8][8], int dequant_mf[6][8][8], int i_qp );
-
-    int (*coeff_last[6])( int16_t *dct );
-    int (*coeff_level_run[5])( int16_t *dct, xavs_run_level_t *runlevel );
-
-    //this part is just for the compile 
-    int (*quant_4x4)( int16_t dct[4][4], uint16_t mf[16], uint16_t bias[16] );
-    int (*quant_4x4_dc)( int16_t dct[4][4], int mf, int bias );
-    int (*quant_2x2_dc)( int16_t dct[2][2], int mf, int bias );
-    void (*dequant_4x4)( int16_t dct[4][4], int dequant_mf[6][4][4], int i_qp );
-    void (*dequant_4x4_dc)( int16_t dct[4][4], int dequant_mf[6][4][4], int i_qp );
-    void (*denoise_dct)( int16_t *dct, uint32_t *sum, uint16_t *offset, int size );
-    int (*decimate_score15)( int16_t *dct );
-    int (*decimate_score16)( int16_t *dct );
-    int (*decimate_score64)( int16_t *dct );
+    void (*dequant_8x8)( int16_t dct[8][8], int dequant_mf[64][8][8], int i_qp );
 
 } xavs_quant_function_t;
 

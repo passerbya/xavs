@@ -23,8 +23,6 @@
 #ifndef XAVS_OSDEP_H
 #define XAVS_OSDEP_H
 
-#define _LARGEFILE_SOURCE 1
-#define _FILE_OFFSET_BITS 64
 #include <stdio.h>
 
 #ifdef HAVE_STDINT_H
@@ -47,7 +45,6 @@
 #define ftell _ftelli64
 #define isfinite _finite
 #define strtok_r strtok_s
-#define _CRT_SECURE_NO_DEPRECATE
 #define XAVS_VERSION "" // no configure script for msvc
 #endif
 
@@ -65,9 +62,11 @@
 #endif
 
 #ifdef _MSC_VER
-#define DECLARE_ALIGNED( var, n ) __declspec(align(n)) var
+//#define DECLARE_ALIGNED( var, n ) __declspec(align(n)) var
+#define DECLARE_ALIGNED( type, var, n ) __declspec(align(n)) type var
 #else
-#define DECLARE_ALIGNED( var, n ) var __attribute__((aligned(n)))
+//#define DECLARE_ALIGNED( var, n ) var __attribute__((aligned(n)))
+#define DECLARE_ALIGNED( type, var, n ) type var __attribute__((aligned(n)))
 #endif
 #define DECLARE_ALIGNED_16( var ) DECLARE_ALIGNED( var, 16 )
 #define DECLARE_ALIGNED_8( var )  DECLARE_ALIGNED( var, 8 )

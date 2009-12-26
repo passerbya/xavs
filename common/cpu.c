@@ -42,10 +42,8 @@
 
 const xavs_cpu_name_t xavs_cpu_names[] = {
     {"Altivec", XAVS_CPU_ALTIVEC},
-//  {"MMX",     XAVS_CPU_MMX}, // we don't support asm on mmx1 cpus anymore
     {"MMX2",    XAVS_CPU_MMX|XAVS_CPU_MMXEXT},
     {"MMXEXT",  XAVS_CPU_MMX|XAVS_CPU_MMXEXT},
-//  {"SSE",     XAVS_CPU_MMX|XAVS_CPU_MMXEXT|XAVS_CPU_SSE}, // there are no sse1 functions in xavs
     {"SSE2Slow",XAVS_CPU_MMX|XAVS_CPU_MMXEXT|XAVS_CPU_SSE|XAVS_CPU_SSE2|XAVS_CPU_SSE2_IS_SLOW},
     {"SSE2",    XAVS_CPU_MMX|XAVS_CPU_MMXEXT|XAVS_CPU_SSE|XAVS_CPU_SSE2},
     {"SSE2Fast",XAVS_CPU_MMX|XAVS_CPU_MMXEXT|XAVS_CPU_SSE|XAVS_CPU_SSE2|XAVS_CPU_SSE2_IS_FAST},
@@ -270,14 +268,17 @@ uint32_t xavs_cpu_detect( void )
     return 0;
 }
 
-#endif
+void xavs_cpu_restore( uint32_t cpu )
+{
+    return ;
+}
 
-#ifndef HAVE_MMX
 void xavs_emms( void )
 {
+    return ;
 }
-#endif
 
+#endif
 
 int xavs_cpu_num_processors( void )
 {
@@ -320,3 +321,4 @@ int xavs_cpu_num_processors( void )
     return 1;
 #endif
 }
+

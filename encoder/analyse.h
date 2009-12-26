@@ -3,8 +3,7 @@
  *****************************************************************************
  * Copyright (C) 2009 xavs project
  *
- * Authors: 
- *          
+ * Authors:
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,14 +17,13 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
 
-#ifndef XAVS_ANALYSE_H
-#define XAVS_ANALYSE_H
+#ifndef _XAVS_ANALYSE_H_
+#define _XAVS_ANALYSE_H_
 
-int  xavs_macroblock_analyse( xavs_t *h );
+void xavs_macroblock_analyse( xavs_t *h );
 void xavs_slicetype_decide( xavs_t *h );
-int  xavs_lowres_context_alloc( xavs_t *h );
 
 #endif

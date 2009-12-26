@@ -3,6 +3,7 @@
  *****************************************************************************
  * Copyright (C) 2009 xavs project
  *
+ * Authors:
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,11 +17,11 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
 
-#ifndef XAVS_XAVS_H
-#define XAVS_XAVS_H
+#ifndef _XAVS_XAVS_H_
+#define _XAVS_XAVS_H_
 
 #if !defined(_STDINT_H) && !defined(_STDINT_H_) && \
     !defined(_INTTYPES_H) && !defined(_INTTYPES_H_)
@@ -35,8 +36,10 @@
 
 #define XAVS_BUILD 1
 
+//#define AVIS_INPUT
+
 /* xavs_t:
- *      opaque handler for encoder */
+ *      opaque handler for decoder and encoder */
 typedef struct xavs_t xavs_t;
 
 /****************************************************************************
@@ -44,6 +47,8 @@ typedef struct xavs_t xavs_t;
  ****************************************************************************/
 /* CPU flags
  */
+#define XAVS_CPU_3DNOW      0x000010    /* 3dnow! */
+#define XAVS_CPU_3DNOWEXT   0x000020    /* 3dnow! ext */
 #define XAVS_CPU_CACHELINE_32   0x000001  /* avoid memory loads that span the border between two cachelines */
 #define XAVS_CPU_CACHELINE_64   0x000002  /* 32/64 is the size of a cacheline in bytes */
 #define XAVS_CPU_ALTIVEC        0x000004
@@ -62,6 +67,7 @@ typedef struct xavs_t xavs_t;
 #define XAVS_CPU_SSE_MISALIGN   0x008000  /* Phenom support for misaligned SSE instruction arguments */
 #define XAVS_CPU_LZCNT          0x010000  /* Phenom support for "leading zero count" instruction. */
 
+
 /* Analyse flags
  */
 #define XAVS_ANALYSE_I4x4       0x0001  /* Analyse i4x4 */
@@ -77,31 +83,15 @@ typedef struct xavs_t xavs_t;
 #define XAVS_ME_HEX                  1
 #define XAVS_ME_UMH                  2
 #define XAVS_ME_ESA                  3
-#define XAVS_ME_TESA                 4
 #define XAVS_CQM_FLAT                0
 #define XAVS_CQM_JVT                 1
 #define XAVS_CQM_CUSTOM              2
-#define XAVS_RC_CQP                  0
-#define XAVS_RC_CRF                  1
-#define XAVS_RC_ABR                  2
-#define XAVS_AQ_NONE                 0
-#define XAVS_AQ_VARIANCE             1
-#define XAVS_AQ_AUTOVARIANCE         2
-#define XAVS_B_ADAPT_NONE            0
-#define XAVS_B_ADAPT_FAST            1
-#define XAVS_B_ADAPT_TRELLIS         2
 
 static const char * const xavs_direct_pred_names[] = { "none", "spatial", "temporal", "auto", 0 };
-static const char * const xavs_motion_est_names[] = { "dia", "hex", "umh", "esa", "tesa", 0 };
-static const char * const xavs_overscan_names[] = { "undef", "show", "crop", 0 };
-static const char * const xavs_vidformat_names[] = { "component", "pal", "ntsc", "secam", "mac", "undef", 0 };
-static const char * const xavs_fullrange_names[] = { "off", "on", 0 };
-static const char * const xavs_colorprim_names[] = { "", "bt709", "undef", "", "bt470m", "bt470bg", "smpte170m", "smpte240m", "film", 0 };
-static const char * const xavs_transfer_names[] = { "", "bt709", "undef", "", "bt470m", "bt470bg", "smpte170m", "smpte240m", "linear", "log100", "log316", 0 };
-static const char * const xavs_colmatrix_names[] = { "GBR", "bt709", "undef", "", "fcc", "bt470bg", "smpte170m", "smpte240m", "YCgCo", 0 };
+static const char * const xavs_motion_est_names[] = { "dia", "hex", "umh", "esa", 0 };
 
 /* Colorspace type
- * legacy only; nothing other than I420 is really supported. */
+ */
 #define XAVS_CSP_MASK           0x00ff  /* */
 #define XAVS_CSP_NONE           0x0000  /* Invalid mode     */
 #define XAVS_CSP_I420           0x0001  /* yuv 4:2:0 planar */
@@ -112,10 +102,10 @@ static const char * const xavs_colmatrix_names[] = { "GBR", "bt709", "undef", ""
 #define XAVS_CSP_RGB            0x0006  /* rgb 24bits       */
 #define XAVS_CSP_BGR            0x0007  /* bgr 24bits       */
 #define XAVS_CSP_BGRA           0x0008  /* bgr 32bits       */
-#define XAVS_CSP_MAX            0x0009  /* end of list */
 #define XAVS_CSP_VFLIP          0x1000  /* */
 
-/* Slice type */
+/* Slice type
+ */
 #define XAVS_TYPE_AUTO          0x0000  /* Let xavs choose the right type */
 #define XAVS_TYPE_IDR           0x0001
 #define XAVS_TYPE_I             0x0002
@@ -125,46 +115,35 @@ static const char * const xavs_colmatrix_names[] = { "GBR", "bt709", "undef", ""
 #define IS_XAVS_TYPE_I(x) ((x)==XAVS_TYPE_I || (x)==XAVS_TYPE_IDR)
 #define IS_XAVS_TYPE_B(x) ((x)==XAVS_TYPE_B || (x)==XAVS_TYPE_BREF)
 
-/* Log level */
+/* Log level
+ */
 #define XAVS_LOG_NONE          (-1)
 #define XAVS_LOG_ERROR          0
 #define XAVS_LOG_WARNING        1
 #define XAVS_LOG_INFO           2
 #define XAVS_LOG_DEBUG          3
 
-/* Threading */
-#define XAVS_THREADS_AUTO 0 /* Automatically select optimal number of threads */
-
-/* Zones: override ratecontrol or other options for specific sections of the video.
- * See xavs_encoder_reconfig() for which options can be changed.
- * If zones overlap, whichever comes later in the list takes precedence. */
 typedef struct
 {
-    int i_start, i_end; /* range of frame numbers */
-    int b_force_qp; /* whether to use qp vs bitrate factor */
+    int i_start, i_end;
+    int b_force_qp;
     int i_qp;
     float f_bitrate_factor;
-    struct xavs_param_t *param;
 } xavs_zone_t;
 
-typedef struct xavs_param_t
+typedef struct
 {
     /* CPU flags */
     unsigned int cpu;
-    int         i_threads;       /* encode multiple frames in parallel */
-    int         b_deterministic; /* whether to allow non-deterministic optimizations when threaded */
+    int         i_threads;  /* divide each frame into multiple slices, encode in parallel */
 
     /* Video Properties */
     int         i_width;
     int         i_height;
     int         i_csp;  /* CSP of encoded bitstream, only i420 supported */
-    int         i_level_idc;
+    int         i_level_idc; 
     int         i_frame_total; /* number of frames to encode if known, else 0 */
 
-	int			i_skip_mode_flag;
-	int			i_reference_number;
-	int			i_is_interlaced;
-	int			i_fixed_qp;
     struct
     {
         /* they will be reduced to be 0 < x <= 65535 and prime */
@@ -172,8 +151,8 @@ typedef struct xavs_param_t
         int         i_sar_width;
 
         int         i_overscan;    /* 0=undef, 1=no overscan, 2=overscan */
-
-        /* see xavs annex E for the values of the following */
+        
+        /* see avs annex E for the values of the following */
         int         i_vidformat;
         int         b_fullrange;
         int         i_colorprim;
@@ -191,7 +170,7 @@ typedef struct xavs_param_t
     int         i_keyint_min;       /* Scenecuts closer together than this are coded as I, not IDR. */
     int         i_scenecut_threshold; /* how aggressively to insert extra I frames */
     int         i_bframe;   /* how many b-frame between 2 references pictures */
-    int         i_bframe_adaptive;
+    int         b_bframe_adaptive;
     int         i_bframe_bias;
     int         b_bframe_pyramid;   /* Keep some B-frames as references */
 
@@ -202,11 +181,9 @@ typedef struct xavs_param_t
     int         b_cabac;
     int         i_cabac_init_idc;
 
-    int         b_interlaced;
-
     int         i_cqm_preset;
     char        *psz_cqm_file;      /* JM format */
-    uint8_t     cqm_4iy[16];        /* used only if i_cqm_preset == XAVS_CQM_CUSTOM */
+    uint8_t     cqm_4iy[16];        /* used only if i_cqm_preset == xavs_CQM_CUSTOM */
     uint8_t     cqm_4ic[16];
     uint8_t     cqm_4py[16];
     uint8_t     cqm_4pc[16];
@@ -218,7 +195,7 @@ typedef struct xavs_param_t
     void        *p_log_private;
     int         i_log_level;
     int         b_visualize;
-    char        *psz_dump_yuv;  /* filename for reconstructed frames */
+    char        *psz_dump_yuv;  /* filename for reconstructed frames */    
 
     /* Encoder analyser parameters */
     struct
@@ -231,51 +208,42 @@ typedef struct xavs_param_t
         int          i_direct_mv_pred; /* spatial vs temporal mv prediction */
         int          i_chroma_qp_offset;
 
-        int          i_me_method; /* motion estimation algorithm to use (XAVS_ME_*) */
+        int          i_me_method; /* motion estimation algorithm to use (xavs_ME_*) */
         int          i_me_range; /* integer pixel motion estimation search range (from predicted mv) */
-        int          i_mv_range; /* maximum length of a mv (in pixels). -1 = auto, based on level */
-        int          i_mv_range_thread; /* minimum space between threads. -1 = auto, based on number of threads. */
+        int          i_mv_range; /* maximum length of a mv (in pixels) */
         int          i_subpel_refine; /* subpixel motion estimation quality */
+        int          b_bidir_me; /* jointly optimize both MVs in B-frames */
         int          b_chroma_me; /* chroma ME for subpel and mode decision in P-frames */
+        int          b_bframe_rdo; /* RD based mode decision for B-frames */
         int          b_mixed_references; /* allow each mb partition in P-frames to have it's own reference number */
         int          i_trellis;  /* trellis RD quantization */
         int          b_fast_pskip; /* early SKIP detection on P-frames */
-        int          b_dct_decimate; /* transform coefficient thresholding on P-frames */
         int          i_noise_reduction; /* adaptive pseudo-deadzone */
-        float        f_psy_rd; /* Psy RD strength */
-        float        f_psy_trellis; /* Psy trellis strength */
-        int          b_psy; /* Toggle all psy optimizations */
 
-        /* the deadzone size that will be used in luma quantization */
-        int          i_luma_deadzone[2]; /* {inter, intra} */
+		/* the deadzone size that will be used in luma quantization */
+        int          i_luma_deadzone[2]; /* {intra, inter} */
 
-        int          b_psnr;    /* compute and print PSNR stats */
-        int          b_ssim;    /* compute and print SSIM stats */
-    } analyse;
+        int          b_psnr;/* Do we compute PSNR stats (save a few % of cpu) */
+        int          b_skip_mode;
+	} analyse;
 
     /* Rate control parameters */
     struct
     {
-        int         i_rc_method;    /* XAVS_RC_* */
-
         int         i_qp_constant;  /* 0-51 */
         int         i_qp_min;       /* min allowed QP value */
         int         i_qp_max;       /* max allowed QP value */
         int         i_qp_step;      /* max QP step between frames */
 
+        int         b_cbr;          /* use bitrate instead of CQP */
         int         i_bitrate;
-        float       f_rf_constant;  /* 1pass VBR, nominal QP */
+        int         i_rf_constant;  /* 1pass VBR, nominal QP */
         float       f_rate_tolerance;
         int         i_vbv_max_bitrate;
         int         i_vbv_buffer_size;
-        float       f_vbv_buffer_init; /* <=1: fraction of buffer_size. >1: kbit */
+        float       f_vbv_buffer_init;
         float       f_ip_factor;
         float       f_pb_factor;
-
-        int         i_aq_mode;      /* psy adaptive QP. (XAVS_AQ_*) */
-        float       f_aq_strength;
-        int         b_mb_tree;      /* Macroblock-tree ratecontrol. */
-        int         i_lookahead;
 
         /* 2pass */
         int         b_stat_write;   /* Enable stat writing in psz_stat_out */
@@ -284,52 +252,68 @@ typedef struct xavs_param_t
         char        *psz_stat_in;
 
         /* 2pass params (same as ffmpeg ones) */
+        char        *psz_rc_eq;     /* 2 pass rate control equation */
         float       f_qcompress;    /* 0.0 => cbr, 1.0 => constant qp */
         float       f_qblur;        /* temporally blur quants */
         float       f_complexity_blur; /* temporally blur complexity */
         xavs_zone_t *zones;         /* ratecontrol overrides */
-        int         i_zones;        /* number of zone_t's */
+        int         i_zones;        /* sumber of zone_t's */
         char        *psz_zones;     /* alternate method of specifying zones */
     } rc;
 
-    /* Muxing parameters */
     int b_aud;                  /* generate access unit delimiters */
-    int b_repeat_headers;       /* put SPS/PPS before each keyframe */
-    int i_sps_id;               /* SPS and PPS id number */
-} xavs_param_t;
+    int b_repeat_headers; 
+	/* put SPS/PPS before each keyframe */
 
+	int i_chroma_format;        /* 1: 4:2:0, 2: 4:2:2 */
+	int i_sample_precision;     /* 1: 8 bits per sample */
+	int i_aspect_ratio;         /* '0001':1/1, '0010':4/3, '0011': 16/9, '0100':2.21/ 1 */
+
+} xavs_param_t;
+/*
 typedef struct {
     int level_idc;
-    int mbps;        /* max macroblock processing rate (macroblocks/sec) */
-    int frame_size;  /* max frame size (macroblocks) */
-    int dpb;         /* max decoded picture buffer (bytes) */
-    int bitrate;     /* max bitrate (kbit/sec) */
-    int cpb;         /* max vbv buffer (kbit) */
-    int mv_range;    /* max vertical mv component range (pixels) */
-    int mvs_per_2mb; /* max mvs per 2 consecutive mbs. */
-    int slice_rate;  /* ?? */
-    int bipred8x8;   /* limit bipred to >=8x8 */
-    int direct8x8;   /* limit b_direct to >=8x8 */
-    int frame_only;  /* forbid interlacing */
-} xavs_level_t;
+    int mbps;        // max macroblock processing rate (macroblocks/sec)
+    int frame_size;  // max frame size (macroblocks)
+    int dpb;         // max decoded picture buffer (bytes)
+    int bitrate;     // max bitrate (kbit/sec)
+    int cpb;         // max vbv buffer (kbit)
+    int mv_range;    // max vertical mv component range (pixels)
+    int mvs_per_2mb; // max mvs per 2 consecutive mbs.
+    int slice_rate;  // ??
+    int bipred8x8;   // limit bipred to >=8x8
+    int direct8x8;   // limit b_direct to >=8x8
+    int frame_only;  // forbid interlacing
+} xavs_level_t;*/
 
+typedef struct {
+	//int mv_range;    // max vertical mv component range (pixels)
+    int level_idc;
+    int samples_per_row; 
+	int lines_per_frame;
+	int frames_per_second;
+	int luma_samples_per_second;
+	int bitrate;     // max bitrate (kbit/sec) 
+	int cpb;         // max vbv buffer (kbit) 
+	int frame_size;  // max frame size (macroblocks) 
+	int mbps;        // max macroblock processing rate (macroblocks/sec) 
+    float frame_ver_mv_range_low;    // max vertical mv component range (pixels) for frame
+	float mv_range;//frame_ver_mv_range_high;   // max vertical mv component range (pixels) for frame
+	float field_ver_mv_range_low;    // max vertical mv component range (pixels) for field
+	float field_ver_mv_range_high;    // max vertical mv component range (pixels) for field
+	float hor_mv_range_low;          // max horizontal mv component range (pixels) 
+	float hor_mv_range_high;         // max horizontal mv component range (pixels) 
+	int pic_format;            // 0:4:2:0, 1:4:2:0 or 4:2:2 
+    int frame_only;  // forbid interlacing 
+	int bits_per_mb_420; // max bits per MB after coded for 4:2:0 
+	int bits_per_mb_422; // max bits per MB after coded for 4:2:2 
+} xavs_level_t;  //added by li  090903
 /* all of the levels defined in the standard, terminated by .level_idc=0 */
 extern const xavs_level_t xavs_levels[];
 
 /* xavs_param_default:
  *      fill xavs_param_t with default values and do CPU detection */
 void    xavs_param_default( xavs_param_t * );
-
-/* xavs_param_parse:
- *  set one parameter by name.
- *  returns 0 on success, or returns one of the following errors.
- *  note: BAD_VALUE occurs only if it can't even parse the value,
- *  numerical range is not checked until xavs_encoder_open() or
- *  xavs_encoder_reconfig().
- *  value=NULL means "true" for boolean options, but is a BAD_VALUE for non-booleans. */
-#define XAVS_PARAM_BAD_NAME  (-1)
-#define XAVS_PARAM_BAD_VALUE (-2)
-int xavs_param_parse( xavs_param_t *, const char *name, const char *value );
 
 /****************************************************************************
  * Picture structures and functions.
@@ -345,11 +329,7 @@ typedef struct
 
 typedef struct
 {
-    /* In: force picture type (if not auto)
-     *     If xavs encoding parameters are violated in the forcing of picture types,
-     *     xavs will correct the input picture type and log a warning.
-     *     The quality of frametype decisions may suffer if a great deal of fine-grained
-     *     mixing of auto and forced frametypes is done.
+    /* In: force picture type (if not auto) XXX: ignored for now
      * Out: type of the picture encoded */
     int     i_type;
     /* In: force quantizer for > 0 */
@@ -362,15 +342,13 @@ typedef struct
 } xavs_picture_t;
 
 /* xavs_picture_alloc:
- *  alloc data for a picture. You must call xavs_picture_clean on it.
- *  returns 0 on success, or -1 on malloc failure. */
-int xavs_picture_alloc( xavs_picture_t *pic, int i_csp, int i_width, int i_height );
+ *  alloc data for a picture. You must call xavs_picture_clean on it. */
+void xavs_picture_alloc( xavs_picture_t *pic, int i_csp, int i_width, int i_height );
 
 /* xavs_picture_clean:
  *  free associated resource for a xavs_picture_t allocated with
  *  xavs_picture_alloc ONLY */
 void xavs_picture_clean( xavs_picture_t *pic );
-
 
 /****************************************************************************
  * NAL structure and functions:
@@ -378,8 +356,8 @@ void xavs_picture_clean( xavs_picture_t *pic );
 /* nal */
 enum nal_unit_type_e
 {
-    NAL_UNKNOWN = 0,
-    NAL_SLICE   = 1,
+    NAL_UNKNOWN     = 0,
+    NAL_SLICE       = 1,
     NAL_SLICE_DPA   = 2,
     NAL_SLICE_DPB   = 3,
     NAL_SLICE_DPC   = 4,
@@ -407,6 +385,16 @@ typedef struct
     int     i_payload;
     uint8_t *p_payload;
 } xavs_nal_t;
+
+/* xavs_nal_encode:
+ *      encode a nal into a buffer, setting the size.
+ *      if b_annexeb then a long synch work is added
+ *      XXX: it currently doesn't check for overflow */
+int xavs_nal_encode( void *, int *, int b_annexeb, xavs_nal_t *nal );
+
+/* xavs_nal_decode:
+ *      decode a buffer nal into a xavs_nal_t */
+int xavs_nal_decode( xavs_nal_t *nal, void *, int );
 
 /****************************************************************************
  * Encoder functions:

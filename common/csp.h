@@ -1,5 +1,5 @@
 /*****************************************************************************
- * ratecontrol.h: xavs encoder library (Rate Control)
+ * csp.h: xavs encoder library
  *****************************************************************************
  * Copyright (C) 2009 xavs project
  *
@@ -20,19 +20,23 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
 
-#ifndef _XAVS_RATECONTROL_H_
-#define _XAVS_RATECONTROL_H_
+#ifndef _XAVS_CSP_H_
+#define _XAVS_CSP_H_
 
-int  xavs_ratecontrol_new   ( xavs_t * );
-void xavs_ratecontrol_delete( xavs_t * );
+typedef struct
+{
+    void (*i420)( xavs_frame_t *, xavs_image_t *, int i_width, int i_height );
+    void (*i422)( xavs_frame_t *, xavs_image_t *, int i_width, int i_height );
+    void (*i444)( xavs_frame_t *, xavs_image_t *, int i_width, int i_height );
+    void (*yv12)( xavs_frame_t *, xavs_image_t *, int i_width, int i_height );
+    void (*yuyv)( xavs_frame_t *, xavs_image_t *, int i_width, int i_height );
+    void (*rgb )( xavs_frame_t *, xavs_image_t *, int i_width, int i_height );
+    void (*bgr )( xavs_frame_t *, xavs_image_t *, int i_width, int i_height );
+    void (*bgra)( xavs_frame_t *, xavs_image_t *, int i_width, int i_height );
+} xavs_csp_function_t;
 
-void xavs_ratecontrol_start( xavs_t *, int i_slice_type, int i_force_qp );
-void xavs_ratecontrol_threads_start( xavs_t * );
-int  xavs_ratecontrol_slice_type( xavs_t *, int i_frame );
-void xavs_ratecontrol_mb( xavs_t *, int bits );
-int  xavs_ratecontrol_qp( xavs_t * );
-void xavs_ratecontrol_end( xavs_t *, int bits );
-void xavs_ratecontrol_summary( xavs_t * );
+
+void xavs_csp_init( int cpu, int i_csp, xavs_csp_function_t *pf );
 
 #endif
 

@@ -4,7 +4,6 @@
  * Copyright (C) 2009 xavs project
  *
  * Authors: 
- *          
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,22 +17,21 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
 
-#ifndef XAVS_SET_H
-#define XAVS_SET_H
+#ifndef _XAVS_SET_H_
+#define _XAVS_SET_H_
 
 enum profile_e
 {
     PROFILE_BASELINE = 66,
     PROFILE_MAIN     = 77,
-    PROFILE_EXTENDED = 88,
+    PROFILE_EXTENTED = 88,
     PROFILE_HIGH    = 100,
     PROFILE_HIGH10  = 110,
     PROFILE_HIGH422 = 122,
-    PROFILE_HIGH444 = 144,
-    PROFILE_HIGH444_PREDICTIVE = 244,
+    PROFILE_HIGH444 = 144
 };
 
 enum cqm4_e
@@ -47,7 +45,7 @@ enum cqm8_e
 {
     CQM_8IY = 0,
     CQM_8PY = 1,
-    CQM_8IC = 2,
+	CQM_8IC = 2,
     CQM_8PC = 3
 };
 
@@ -97,7 +95,7 @@ typedef struct
         int b_aspect_ratio_info_present;
         int i_sar_width;
         int i_sar_height;
-
+        
         int b_overscan_info_present;
         int b_overscan_info;
 
@@ -162,10 +160,145 @@ typedef struct
     int b_transform_8x8_mode;
 
     int i_cqm_preset;
-
     const uint8_t *scaling_list[6]; /* could be 8, but we don't allow separate Cb/Cr lists */
 
 } xavs_pps_t;
+typedef struct
+{
+    int i_video_sequence_start_code;
+
+    int i_profile_idc;
+    int i_level_idc;
+
+    int b_progressive_sequence;
+
+    int i_horizontal_size;
+    int i_vertical_size;
+    int i_chroma_format;
+    int i_sample_precision;
+    int i_aspect_ratio;
+    int i_frame_rate_code;
+    int i_bit_rate_lower;
+    int i_bit_rate_upper;
+    int b_low_delay;
+    int i_bbv_buffer_size;
+	int i_reserved_bits;
+
+}xavs_seq_header_t;
+
+typedef struct
+{
+    int i_extention_start_code;
+    int i_extention_id;//'0010'
+    int i_video_format;
+    int b_sample_range;
+    int b_colour_description;
+    int i_colour_primaries;
+    int i_transfer_characteristics;
+    int i_matrix_coefficients;
+    int i_display_horizontal_size;
+    int i_display_vertical_size;
+	int i_reserved_bits;
+}xavs_sequence_display_extention_t;
+
+typedef struct  
+{
+	int i_extention_start_code;
+	int i_extention_id;//'0100'
+	int b_copyright_flag;
+	int i_copyright_id;
+	int b_original_or_copy;
+	int i_reserved_bits;
+	int i_copyright_number_1;
+	int i_copyright_number_2;
+	int i_copyright_number_3;
+
+}xavs_copyright_extention_t;
+
+typedef struct
+{
+	int i_extention_start_code;
+	int i_extention_id;//'1011'
+	int i_camera_id;
+	int i_height_of_image_device;
+	int i_focal_length;
+	int i_f_number;
+	int i_vertical_angle_of_view;
+	int i_camera_position_x_upper;
+	int i_camera_position_x_lower;
+	int i_camera_position_y_upper;
+	int i_camera_position_y_lower;
+	int i_camera_position_z_upper;
+	int i_camera_position_z_lower;
+	int i_camera_direction_x;
+	int i_camera_direction_y;
+	int i_camera_direction_z;
+	int i_image_plane_vertical_x;
+	int i_image_plane_vertical_y;
+	int i_image_plane_vertical_z;
+	int i_reserved_bits;
+}xavs_camera_parameters_extention_t;
+
+typedef struct
+{
+	int i_user_data_start_code;
+	char *psz_userdata;
+
+}xavs_user_data_t;
+
+typedef struct
+{
+	int i_i_picture_start_code;
+	int i_bbv_delay;
+	int b_time_code_flag;
+	int i_time_code;
+	int i_picture_distance;
+	int i_bbv_check_times;
+	int b_progressive_frame;
+	int b_picture_structure;
+	int b_top_field_first;
+	int b_repeat_first_field;
+	int b_fixed_picture_qp;
+	int i_picture_qp;
+	int b_skip_mode_flag;
+	int i_reserved_bits;
+	int b_loop_filter_disable;
+	int b_loop_filter_parameter_flag;
+	int i_alpha_c_offset;
+	int i_beta_offset;
+} xavs_i_pic_header_t;
+
+typedef struct
+{
+	int i_pb_picture_start_code;
+	int i_bbv_delay;
+	int i_picture_coding_type;
+	int i_picture_distance;
+	int i_bbv_check_times;
+	int b_progressive_frame;
+	int b_picture_structure;
+	int b_advanced_pred_mode_disable;
+	int b_top_field_first;
+	int b_repeat_first_field;
+	int b_fixed_picture_qp;
+	int i_picture_qp;
+	int b_picture_reference_flag;
+	int b_no_forward_reference_flag;
+	int b_skip_mode_flag;
+	int b_loop_filter_disable;
+	int b_loop_filter_parameter_flag;
+	int i_alpha_c_offset;
+	int i_beta_offset;
+}xavs_pb_pic_header_t;
+
+typedef struct
+{
+	int i_extention_start_code;
+	int i_extention_code;//'0111'
+	int i_frame_centre_horizontal_offset[3];
+	int i_frame_centre_vertical_offset[3];
+
+}xavs_picture_display_extention_t;
 
 /* default quant matrices */
 static const uint8_t xavs_cqm_jvt4i[16] =
@@ -222,8 +355,8 @@ static const uint8_t * const xavs_cqm_jvt[6] =
     xavs_cqm_jvt8i, xavs_cqm_jvt8p
 };
 
-int  xavs_cqm_init( xavs_t *h );
+int xavs_cqm_init( xavs_t *h );
 void xavs_cqm_delete( xavs_t *h );
-int  xavs_cqm_parse_file( xavs_t *h, const char *filename );
+int xavs_cqm_parse_file( xavs_t *h, const char *filename );
 
 #endif

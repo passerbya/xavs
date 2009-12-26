@@ -18,8 +18,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
  *****************************************************************************/
 
-#ifndef XAVS_MATROSKA_H
-#define XAVS_MATROSKA_H
+#ifndef _XAVS_MATROSKA_H_
+#define _XAVS_MATROSKA_H_
 
 typedef struct mk_Writer mk_Writer;
 

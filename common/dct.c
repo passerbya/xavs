@@ -1,10 +1,9 @@
 /*****************************************************************************
  * dct.c: xavs encoder library
  *****************************************************************************
- * Copyright (C) 2009 xavs project
+ * Copyright (C)  2009 xavs project
  *
  * Authors: 
- *          
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,18 +17,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111, USA.
  *****************************************************************************/
 
 #include "common.h"
-#ifdef HAVE_MMX
+#ifdef HAVE_MMXEXT
 #   include "x86/dct.h"
 #endif
 #ifdef ARCH_PPC
 #   include "ppc/dct.h"
 #endif
-
-
 
 static inline void pixel_sub_wxh( int16_t *diff, int i_size,
                                   uint8_t *pix1, int i_pix1, uint8_t *pix2, int i_pix2 )
@@ -46,10 +43,10 @@ static inline void pixel_sub_wxh( int16_t *diff, int i_size,
     }
 }
 
+
 /****************************************************************************
  * 8x8 transform:
  ****************************************************************************/
-
 #define DCT8_Horizontal_1D {\
     const int s07 = SRC(0) + SRC(7);\
     const int s16 = SRC(1) + SRC(6);\
@@ -103,13 +100,6 @@ static inline void pixel_sub_wxh( int16_t *diff, int i_size,
 	DST(5) =  (((a7 - a5 - a6)<<1) + a7 + (1<<4))>>5;\
 	DST(7) =  (((a4 - a6 - a7)<<1) - a6 + (1<<4))>>5; \
 }
-
-/*************************************************
-  *  Function:  
-  *  Input: 
-  * 
-  *  Output:
-*************************************************/   
 static void sub8x8_dct8( int16_t dct[8][8], uint8_t *pix1, uint8_t *pix2 )
 {
     int i;
@@ -141,7 +131,6 @@ static void sub16x16_dct8( int16_t dct[4][8][8], uint8_t *pix1, uint8_t *pix2 )
     sub8x8_dct8( dct[3], &pix1[8*FENC_STRIDE+8], &pix2[8*FDEC_STRIDE+8] );
 }
 
-// aloha'
 #define IDCT8_Horizontal_1D {\
      int a0 = SRC(0);\
      int a1 = SRC(4);\
@@ -337,24 +326,26 @@ static void add16x16_idct8( uint8_t *dst, int16_t dct[4][8][8] )
  ****************************************************************************/
 void xavs_dct_init( int cpu, xavs_dct_function_t *dctf )
 {
+
     dctf->sub8x8_dct8   = sub8x8_dct8;
     dctf->add8x8_idct8  = add8x8_idct8;
 
     dctf->sub16x16_dct8  = sub16x16_dct8;
     dctf->add16x16_idct8 = add16x16_idct8;
 
-#ifdef HAVE_MMX
-    if( cpu&XAVS_CPU_MMX )
-    {
-#ifndef ARCH_X86_64
 
+#ifdef HAVE_MMXEXT
+    if( cpu&xavs_CPU_MMX )
+    {
+
+#ifndef ARCH_X86_64
         dctf->sub8x8_dct8   = xavs_sub8x8_dct8_mmx;
         dctf->sub16x16_dct8 = xavs_sub16x16_dct8_mmx;
+
         dctf->add8x8_idct8  = xavs_add8x8_idct8_mmx;
         dctf->add16x16_idct8= xavs_add16x16_idct8_mmx;
 #endif
     }
-
     if( cpu&XAVS_CPU_SSE2 )
     {
         dctf->sub8x8_dct8   = xavs_sub8x8_dct8_sse2;
@@ -368,15 +359,16 @@ void xavs_dct_init( int cpu, xavs_dct_function_t *dctf )
         dctf->sub8x8_dct8   = xavs_sub8x8_dct8_ssse3;
         dctf->sub16x16_dct8 = xavs_sub16x16_dct8_ssse3;
     }
-#endif //HAVE_MMX
+#endif
 
-#ifdef ARCH_PPC
-    if( cpu&XAVS_CPU_ALTIVEC )
+#if defined(HAVE_SSE2) && defined(ARCH_X86_64)
+    if( cpu&xavs_CPU_SSE2 )
     {
-        dctf->sub8x8_dct8   = xavs_sub8x8_dct8_altivec;
-        dctf->sub16x16_dct8 = xavs_sub16x16_dct8_altivec;
-        dctf->add8x8_idct8  = xavs_add8x8_idct8_altivec;
-        dctf->add16x16_idct8= xavs_add16x16_idct8_altivec;
+        dctf->sub8x8_dct8   = xavs_sub8x8_dct8_sse2;
+        dctf->sub16x16_dct8 = xavs_sub16x16_dct8_sse2;
+
+        dctf->add8x8_idct8  = xavs_add8x8_idct8_sse2;
+        dctf->add16x16_idct8= xavs_add16x16_idct8_sse2;
     }
 #endif
 }
@@ -489,3 +481,56 @@ void xavs_zigzag_init( int cpu, xavs_zigzag_function_t *pf, int b_interlaced )
 #endif
     }
 }
+
+
+#define ZIG(i,y,x) level[i] = dct[y][x];
+void scan_zigzag_8x8full( int level[64], int16_t dct[8][8] )
+{
+    ZIG( 0,0,0) ZIG( 1,0,1) ZIG( 2,1,0) ZIG( 3,2,0)
+    ZIG( 4,1,1) ZIG( 5,0,2) ZIG( 6,0,3) ZIG( 7,1,2)
+    ZIG( 8,2,1) ZIG( 9,3,0) ZIG(10,4,0) ZIG(11,3,1)
+    ZIG(12,2,2) ZIG(13,1,3) ZIG(14,0,4) ZIG(15,0,5)
+    ZIG(16,1,4) ZIG(17,2,3) ZIG(18,3,2) ZIG(19,4,1)
+    ZIG(20,5,0) ZIG(21,6,0) ZIG(22,5,1) ZIG(23,4,2)
+    ZIG(24,3,3) ZIG(25,2,4) ZIG(26,1,5) ZIG(27,0,6)
+    ZIG(28,0,7) ZIG(29,1,6) ZIG(30,2,5) ZIG(31,3,4)
+    ZIG(32,4,3) ZIG(33,5,2) ZIG(34,6,1) ZIG(35,7,0)
+    ZIG(36,7,1) ZIG(37,6,2) ZIG(38,5,3) ZIG(39,4,4)
+    ZIG(40,3,5) ZIG(41,2,6) ZIG(42,1,7) ZIG(43,2,7)
+    ZIG(44,3,6) ZIG(45,4,5) ZIG(46,5,4) ZIG(47,6,3)
+    ZIG(48,7,2) ZIG(49,7,3) ZIG(50,6,4) ZIG(51,5,5)
+    ZIG(52,4,6) ZIG(53,3,7) ZIG(54,4,7) ZIG(55,5,6)
+    ZIG(56,6,5) ZIG(57,7,4) ZIG(58,7,5) ZIG(59,6,6)
+    ZIG(60,5,7) ZIG(61,6,7) ZIG(62,7,6) ZIG(63,7,7)
+}
+#undef ZIG
+
+#define ZIG(i,y,x) {\
+    int oe = x+y*FENC_STRIDE;\
+    int od = x+y*FDEC_STRIDE;\
+    level[i] = p_src[oe] - p_dst[od];\
+    p_dst[od] = p_src[oe];\
+}
+
+void sub_zigzag_8x8full( int level[64], const uint8_t *p_src, uint8_t *p_dst )
+{
+    ZIG( 0,0,0) ZIG( 1,0,1) ZIG( 2,1,0) ZIG( 3,2,0)
+    ZIG( 4,1,1) ZIG( 5,0,2) ZIG( 6,0,3) ZIG( 7,1,2)
+    ZIG( 8,2,1) ZIG( 9,3,0) ZIG(10,4,0) ZIG(11,3,1)
+    ZIG(12,2,2) ZIG(13,1,3) ZIG(14,0,4) ZIG(15,0,5)
+    ZIG(16,1,4) ZIG(17,2,3) ZIG(18,3,2) ZIG(19,4,1)
+    ZIG(20,5,0) ZIG(21,6,0) ZIG(22,5,1) ZIG(23,4,2)
+    ZIG(24,3,3) ZIG(25,2,4) ZIG(26,1,5) ZIG(27,0,6)
+    ZIG(28,0,7) ZIG(29,1,6) ZIG(30,2,5) ZIG(31,3,4)
+    ZIG(32,4,3) ZIG(33,5,2) ZIG(34,6,1) ZIG(35,7,0)
+    ZIG(36,7,1) ZIG(37,6,2) ZIG(38,5,3) ZIG(39,4,4)
+    ZIG(40,3,5) ZIG(41,2,6) ZIG(42,1,7) ZIG(43,2,7)
+    ZIG(44,3,6) ZIG(45,4,5) ZIG(46,5,4) ZIG(47,6,3)
+    ZIG(48,7,2) ZIG(49,7,3) ZIG(50,6,4) ZIG(51,5,5)
+    ZIG(52,4,6) ZIG(53,3,7) ZIG(54,4,7) ZIG(55,5,6)
+    ZIG(56,6,5) ZIG(57,7,4) ZIG(58,7,5) ZIG(59,6,6)
+    ZIG(60,5,7) ZIG(61,6,7) ZIG(62,7,6) ZIG(63,7,7)
+
+}
+
+#undef ZIG

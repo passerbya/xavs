@@ -3,6 +3,8 @@
  *****************************************************************************
  * Copyright (C) 2009 xavs project
  *
+ * Authors:
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -18,8 +20,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02111, USA.
  *****************************************************************************/
 
-#ifndef XAVS_CPU_H
-#define XAVS_CPU_H
+#ifndef _XAVS_CPU_H_
+#define _XAVS_CPU_H_
 
 uint32_t xavs_cpu_detect( void );
 int      xavs_cpu_num_processors( void );
@@ -46,5 +48,7 @@ typedef struct {
     int flags;
 } xavs_cpu_name_t;
 extern const xavs_cpu_name_t xavs_cpu_names[];
+
+void xavs_cpu_restore( uint32_t cpu );
 
 #endif
